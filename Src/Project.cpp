@@ -2,10 +2,8 @@
 #include "GpioPin.hpp"
 
 
-// A GPIO output configuration
-static GPIO_Config_t gpio_cfg = {
-		GPIOC, 6, GPIO_MODER_OUTPUT, AHB_PCLOCK_IOPC, GPIO_OUTPUT_TYPE_PP, GPIO_OUTPUT_SPEED_LOW, GPIO_PUPD_NONE
-};
+void Hello_GPIO(void);
+void Hello_Push_Button(void);
 
 
 #ifdef __cplusplus
@@ -13,18 +11,21 @@ extern "C"
 {
 #endif
 
-void ProjectLoop()
+void ProjectLoop(STM32PRJ_t stm32_prj)
 {
-    // Create a GPIO object configured for ouput
-	GpioPin led = GpioPin(&gpio_cfg);
+	switch(stm32_prj)
+	{
+	case STM32PRJ_HELLO_GPIO:
+		Hello_GPIO();
+		break;
 
-	// Loop forever...
-    while(1)
-    {
-        for(int i = 0; i < 500000; i++);
+	case STM32PRJ_HELLO_PUSH_BUTTON:
+		Hello_Push_Button();
+		break;
 
-        led.Toggle();
-    }
+	default:
+		break;
+	}
 }
 
 #ifdef __cplusplus
