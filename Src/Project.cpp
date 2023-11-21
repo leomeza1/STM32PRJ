@@ -4,6 +4,7 @@
 
 void Hello_GPIO(void);
 void Hello_Push_Button(void);
+void Hello_Latched_Button(void);
 
 
 #ifdef __cplusplus
@@ -21,6 +22,10 @@ void ProjectLoop(STM32PRJ_t stm32_prj)
 
 	case STM32PRJ_HELLO_PUSH_BUTTON:
 		Hello_Push_Button();
+		break;
+
+	case STM32PRJ_HELLO_LATCHED_BUTTON:
+		Hello_Latched_Button();
 		break;
 
 	default:
