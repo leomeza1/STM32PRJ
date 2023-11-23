@@ -1,4 +1,5 @@
 #include "GpioPin.hpp"
+#include "PushButton.hpp"
 
 
 // A GPIO output configuration, for the LED
@@ -28,76 +29,35 @@ void Hello_Latched_Button(void)
 	// Create a GPIO object configured for input
 	GpioPin button = GpioPin(GPIOB, &button_cfg);
 
-	// Button state (pressed = 1, released = 0)
-	volatile char buttonState = 0;
+	// Create a PushButton object
+	PushButton *push_button = new PushButton();
 
-	// Button Pressed confidence level
-	volatile int buttonPressedConfidenceLevel = 0;
-
-	// Button Released confidence level
-	volatile int buttonReleasedConfidenceLevel = 0;
-
-	// Button state confidence threshold
-	volatile int confidenceThreshold = 500;
+	// Create a variable to keep track of the previous push button state
+	GPIO_PinState previous_state = GPIO_PIN_RESET;
 
 	// Loop forever...
     while(1)
     {
-    	// Note: This code debounces the signal from the mechanical
-    	//       push button using a 'confidence threshold' method.
-    	//       That is, the signal is sampled continuously while
-    	//       counting the number of consecutive 1's (or 0's).
-    	//       As the number of consecutive 1's (or 0's) increases,
-    	//       so too does the confidence in the actual state of
-    	//       the push button (pressed or not pressed). If the
-    	//       sampled values are alternating between 1's and 0's
-    	//       then the confidence in the actual state of the push
-    	//       button is low, we don't know if it's pressed or not.
+    	// Update the push button state by reading the value of the GPIO input pin
+    	push_button->Update(button.Read());
 
-    	// Is the button in the pressed state?
-        if(button.Read() == GPIO_PIN_SET)
-        {
-        	// Yes, the button is in the pressed state.
+    	// Is the push button in the 'pressed' state?
+    	if(push_button->IsPressed())
+    	{
+    		// Yes, set previous_state so we can detect when the push button is released
+    		previous_state = GPIO_PIN_SET;
+    	}
+    	else // The push button is in the 'released' state
+    	{
+    		// Was the push button in the 'pressed' state the previous iteration?
+    		if(previous_state == GPIO_PIN_SET)
+    		{
+    			// Yes, toggle the LED
+    			led.Toggle();
+    		}
 
-        	// Was the button in the released state the previous iteration?
-        	if(buttonState == 0)
-        	{
-        		// Yes,the button was in the released state the previous iteration
-
-        		// Is the Button Pressed Confidence level has passed the threshold
-        		if(buttonPressedConfidenceLevel > confidenceThreshold)
-        		{
-        			// Toggle the LED
-        			led.Toggle();
-
-        			// Update the Button State variable to 1 (pressed)
-        			buttonState = 1;
-        		}
-        		else
-        		{
-        			// Increase the Button Pressed Confidence Level
-        			buttonPressedConfidenceLevel += 1;
-        			buttonReleasedConfidenceLevel = 0;
-        		}
-        	}
-        }
-        else
-        {
-        	if(buttonState == 1)
-        	{
-        		// Once the button Release Confidence Level has been reached
-        		if(buttonReleasedConfidenceLevel > confidenceThreshold)
-        		{
-        			// Update the Button State variable to 0 (released)
-        			buttonState = 0;
-        		}
-        		else
-        		{
-        			// Increase the Button Released Confidence level
-        			buttonReleasedConfidenceLevel += 1;
-        			buttonPressedConfidenceLevel = 0;
-        		}
-        	}
-        }
+    		// Reset previous_state set the push button is in the 'released' state
+    		previous_state = GPIO_PIN_RESET;
+    	}
     }
 }
